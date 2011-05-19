@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:local="*" xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:flexcalendar="com.flexcalendar.components.calendar.*"
+				xmlns:myflexcalendar="com.flexcalendar.components.calendar.sample.*"
+				backgroundGradientColors="[0xffffff, 0xffffff]"
+				minHeight="500" minWidth="700"
+				applicationComplete="completeHandler();">
+
+<!-- To build with maven comment this line -->
+<!--<mx:Style source="flex3/defaults.css" />-->
+
+	<mx:Style>
+	   DefaultCalendarDayViewAvailableSpaceRenderer
+	   {
+			   textColor: #000000;
+			   rendererAlpha: 1;
+			   backgroundColor: #ffffff;
+			   headerBackgroundColor: #ffffff;
+			   borderColor: #dedede;
+			   backgroundType: "solid";
+	   }
+
+	   DefaultCalendarDayViewUnavailableSpaceRenderer
+	   {
+			   rendererAlpha: 1;
+			   backgroundColor: #dedede;
+			   headerBackgroundColor: #dedede;
+			   borderColor: #ffffff;
+			   backgroundType: "solid";
+	   }
+	</mx:Style>
+
+	<mx:Script>
+		<![CDATA[
+        import com.flexcalendar.components.calendar.core.DateRange;
+        import com.flexcalendar.components.calendar.core.dataModel.CalendarDataProvider;
+        import com.flexcalendar.components.calendar.editor.baloon.BaloonItemEditor;
+        import com.flexcalendar.components.calendar.events.CalendarItemAddedEvent;
+        import com.flexcalendar.components.calendar.events.CalendarItemModificationEvent;
+        import com.flexcalendar.components.calendar.events.CalendarItemRemovedEvent;
+        import com.flexcalendar.components.calendar.events.CalendarMouseEvent;
+        import com.flexcalendar.components.calendar.utils.CalendarMode;
+        import com.flexcalendar.components.calendar.utils.DateUtils;
+
+        import mx.events.CalendarLayoutChangeEvent;
+
+        [Bindable]
+        public var dp:CalendarDataProvider;
+
+        [Bindable]
+        public var visibleDateRange:DateRange;
+
+        [Bindable]
+        private var leftComponentsWidth:Number = 190;
+
+        protected function completeHandler(event:Event = null):void {
+
+            defaultLocale = resourceManager.localeChain[0];
+
+            fromDateChooser.addEventListener(CalendarLayoutChangeEvent.CHANGE, updateRange);
+            toDateChooser.addEventListener(CalendarLayoutChangeEvent.CHANGE, updateRange);
+
+            //create sample CalendarDataProvider
+            dp = new DataProviderBuilder().buildExampleDataProvider();
+
+            var today:Date = DateUtils.startOfDay(new Date());
+
+            var startRange:Date = DateUtils.startOfDay(new Date());
+            var endRange:Date = DateUtils.endOfDay(new Date());
+
+
+            DateUtils.addDays(startRange, 0 - today.day);
+            DateUtils.addDays(endRange, 0 - today.day + 6);
+
+            visibleDateRange = new DateRange(startRange, endRange);
+        }
+
+
+        protected function updateRange(event:CalendarLayoutChangeEvent):void {
+
+            //sanity check
+            if (toDateChooser.selectedDate < fromDateChooser.selectedDate) {
+                //reset val	ues
+                fromDateChooser.selectedDate = flexCalendar.visibleRange.start;
+                toDateChooser.selectedDate = flexCalendar.visibleRange.end;
+            }
+            else {
+                flexCalendar.visibleRange = new DateRange(DateUtils.startOfDay(fromDateChooser.selectedDate),
+                        DateUtils.endOfDay(toDateChooser.selectedDate));
+            }
+        }
+
+        private function calendarMouseClickHandler(event:CalendarMouseEvent):void {
+            trace("Selected date: " + event.selectedDate);
+            trace("Preferred new event time: " + event.preferredTimeInMills);
+            trace("Mouse event: " + event.event);
+        }
+
+
+        private function calendarRendererMouseClickHandler(event:CalendarMouseEvent):void {
+            trace("Selected renderer start date: " + event.selectedDate);
+            trace("Selected item details: " + event.item)
+            trace("Selected item summary: " + event.item.summary);
+            trace("Mouse event: " + event.event);
+        }
+
+        private function calendarItemAdded(event:CalendarItemAddedEvent):void {
+            trace("Item added");
+        }
+
+        private function calendarItemRemoved(event:CalendarItemRemovedEvent):void {
+            trace("Item removed");
+        }
+
+        private function calendarItemModified(event:CalendarItemModificationEvent):void {
+            trace("Item modified");
+        }
+
+        [Bindable]
+        private var locales:Array = ["en_US", "pt_BR"];
+        [Bindable]
+        private var defaultLocale:Object;
+
+        private function localeComboChangeHandler():void {
+            resourceManager.localeChain = [ localeComboBox.selectedItem, "en_US"];
+        }
+        ]]>
+	</mx:Script>
+
+	<mx:Metadata>
+		[ResourceBundle("sampleApp")]
+	</mx:Metadata>
+
+
+	<mx:HBox width="100%" height="100%">
+
+		<mx:VBox height="100%" width="{leftComponentsWidth}">
+			<mx:DateChooser id="fromDateChooser" selectedDate="{flexCalendar.visibleRange.start}" width="100%"/>
+			<mx:DateChooser id="toDateChooser" selectedDate="{flexCalendar.visibleRange.end}" width="100%"/>
+			<mx:Accordion width="{leftComponentsWidth}" height="300">
+				<mx:VBox label="{resourceManager.getString('sampleApp','config.panel.global.settings.title')}" width="100%" styleName="configPanelVbox">
+					<mx:CheckBox id="entireCalendarReadonly" label="{resourceManager.getString('sampleApp','config.panel.global.settings.readonly')}" selected="false"/>
+					<mx:CheckBox id="hideCalendarHeader" label="{resourceManager.getString('sampleApp','config.panel.global.settings.header')}" selected="true"/>
+					<mx:CheckBox id="currentTimeIndicator" label="{resourceManager.getString('sampleApp','config.panel.global.settings.current.time.indicator')}" selected="true"/>
+					<mx:CheckBox id="currentDayIndicator" label="{resourceManager.getString('sampleApp','config.panel.global.settings.current.day.indicator')}" selected="true"/>
+
+				</mx:VBox>
+				<mx:VBox label="{resourceManager.getString('sampleApp','config.panel.localization.title')}" width="100%" styleName="configPanelVbox">
+						<mx:Label text="{resourceManager.getString('sampleApp','config.panel.localization.choose')}"/>
+						<mx:ComboBox id="localeComboBox" dataProvider="{locales}" change="localeComboChangeHandler()" selectedItem="{defaultLocale}"/>
+				</mx:VBox>
+			</mx:Accordion>
+
+		</mx:VBox>
+
+		<flexcalendar:FlexCalendar id="flexCalendar" width="100%" height="100%" dataProvider="{dp}" scaleX="1" visibleRange="{visibleDateRange}"
+								scaleY="1" itemEditor="{new BaloonItemEditor(flexCalendar, false, false)}"
+								calendarMode="{entireCalendarReadonly.selected?CalendarMode.READ_ONLY_MODE : CalendarMode.LIMITED_EDIT_MODE}"
+								headerVisible="{hideCalendarHeader.selected}"
+								currentTimeIndicator="{currentTimeIndicator.selected}"
+								currentDayIndicator="{currentDayIndicator.selected}"
+								doubleClickEnabled="true"
+								calendarItemAddedEvent="calendarItemAdded(event)"
+								calendarItemRemovedEvent="calendarItemRemoved(event)"
+								calendarItemModificationEvent="calendarItemModified(event)"
+
+                                calendarMouseClick="trace('calendarMouseClick')"
+                                calendarMouseDoubleClick="trace('calendarMouseDoubleClick')"
+                                calendarRendererMouseClick="trace('calendarRendererMouseClick')"
+                                calendarRendererMouseDoubleClick="trace('calendarRendererMouseDoubleClick')"
+                                calendarSpaceRendererMouseClick="trace('calendarSpaceRendererMouseClick')"
+                                calendarSpaceRendererMouseDoubleClick="trace('calendarSpaceRendererMouseDoubleClick')"
+								/>
+
+	</mx:HBox>
+
+</mx:Application>

@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:editor="com.flexcalendar.components.calendar.editor.*"
+		  creationComplete="onCreationComplete()" >
+
+	<mx:Script><![CDATA[
+		import mx.collections.ArrayCollection;
+
+		[Bindable]
+		public var item:ItemEditorVO;
+
+		[Bindable]
+		public var isNew:Boolean = false;
+
+		public var saveCallback:Function;
+		public var cancelCallback:Function;
+		public var deleteCallback:Function;
+
+		[Bindable]
+		private var descWidth:int = 120;
+		[Bindable]
+		private var editWidth:int = 300;
+
+		[Bindable]
+		public var repeatVariants:ArrayCollection;
+
+		[Bindable]
+		public var intervalVariants:ArrayCollection;
+
+		private function displayRepeatEvery(recurId:int):Boolean
+		{
+			return recurId != 1 && recurId != 2 && recurId != 3;
+		}
+
+		private function repeatOnVisible(recurId:int):Boolean
+		{
+			return recurId == 4;
+		}
+
+		private function onCreationComplete():void
+		{
+			this.addEventListener(KeyboardEvent.KEY_UP, keyHandler, false, 0, true);
+			setDayNames();
+		}
+
+		private function keyHandler(event:KeyboardEvent):void {
+			if (event.keyCode == Keyboard.ESCAPE)
+			{
+				cancelCallback();
+			}
+        }
+
+		private function setDayNames():void
+		{
+			var dayLetters:Array = resourceManager.getString("controls", "dayNamesShortest").split(",");
+			w1.label = dayLetters[1];
+			w2.label = dayLetters[2];
+			w3.label = dayLetters[3];
+			w4.label = dayLetters[4];
+			w5.label = dayLetters[5];
+			w6.label = dayLetters[6];
+			w7.label = dayLetters[0];
+		}
+
+
+		]]></mx:Script>
+
+	<mx:Metadata>
+		[ResourceBundle("FlexCalendar")]
+	</mx:Metadata>
+
+	<mx:HBox>
+		<mx:Label text="{resourceManager.getString('FlexCalendar','editor.summary')}" width="{descWidth}"/>
+		<mx:TextInput id="summary" text="{item.summary}" width="{editWidth}" change="item.summary = summary.text"/>
+	</mx:HBox>
+
+
+	<mx:HBox>
+		<mx:Label text="{resourceManager.getString('FlexCalendar','editor.description')}" width="{descWidth}"/>
+		<mx:TextArea id="description" text="{item.description}" width="{editWidth}" change="item.description = description.text"/>
+	</mx:HBox>
+
+
+	<mx:HBox>
+		<mx:Label text="{resourceManager.getString('FlexCalendar','editor.from')}" width="{descWidth}"/>
+		<editor:DateTimeChooser id="start" selectedDate="{item.start}" width="{editWidth}"
+								change="item.start = start.selectedDate"/>
+	</mx:HBox>
+
+	<mx:HBox>
+		<mx:Label text="{resourceManager.getString('FlexCalendar','editor.to')}" width="{descWidth}"/>
+		<editor:DateTimeChooser id="end" selectedDate="{item.end}" width="{editWidth}" change="item.end = end.selectedDate"/>
+	</mx:HBox>
+
+	<mx:HBox>
+		<mx:Label text="{resourceManager.getString('FlexCalendar','editor.repeat')}" width="{descWidth}"/>
+		<mx:CheckBox id="recurring" selected="{item.recurring}" change="item.recurring = recurring.selected"/>
+	</mx:HBox>
+
+
+	<mx:VBox visible="{item.recurring}" includeInLayout="{item.recurring}">
+
+		<mx:HBox>
+			<mx:Label text="{resourceManager.getString('FlexCalendar','editor.repeats')}" width="{descWidth}"/>
+			<mx:ComboBox id="repeats" labelField="label" dataProvider="{repeatVariants}" selectedIndex="{item.repeatRuleId}"
+						 change="item.repeatRuleId = repeats.selectedIndex"/>
+		</mx:HBox>
+
+		<mx:HBox visible="{displayRepeatEvery(item.repeatRuleId)}" includeInLayout="{displayRepeatEvery(item.repeatRuleId)}">
+			<mx:Label text="{resourceManager.getString('FlexCalendar','editor.repeatsInterval')}" width="{descWidth}"/>
+			<mx:ComboBox id="interval" labelField="label" dataProvider="{intervalVariants}" selectedIndex="{item.interval}"
+						 change="item.interval = interval.selectedIndex"/>
+		</mx:HBox>
+
+		<mx:HBox visible="{repeatOnVisible(item.repeatRuleId)}" includeInLayout="{item.repeatRuleId == 4}">
+			<mx:Label text="{resourceManager.getString('FlexCalendar','editor.repeatOn')}" width="{descWidth}"/>
+			<mx:CheckBox id="w1" label="M" selected="{item.MO}" change="item.MO = w1.selected"/>
+			<mx:CheckBox id="w2" label="T" selected="{item.TU}" change="item.TU = w2.selected"/>
+			<mx:CheckBox id="w3" label="W" selected="{item.WE}" change="item.WE = w3.selected"/>
+			<mx:CheckBox id="w4" label="T" selected="{item.TH}" change="item.TH = w4.selected"/>
+			<mx:CheckBox id="w5" label="F" selected="{item.FR}" change="item.FR = w5.selected"/>
+			<mx:CheckBox id="w6" label="S" selected="{item.SA}" change="item.SA = w6.selected"/>
+			<mx:CheckBox id="w7" label="S" selected="{item.SU}" change="item.SU = w7.selected"/>
+		</mx:HBox>
+
+		<mx:HBox>
+			<mx:Label text="{resourceManager.getString('FlexCalendar','editor.endsOn')}" width="{descWidth}"/>
+			<mx:CheckBox id="endDateSpecified" label="{resourceManager.getString('FlexCalendar','editor.never')}" selected="{!item.endDateSpecified}"
+						 change="item.endDateSpecified = !endDateSpecified.selected"/>
+			<mx:DateField id="endsOn" selectedDate="{item.endDate}" enabled="{item.endDateSpecified}"
+						  change="item.endDate = endsOn.selectedDate"/>
+		</mx:HBox>
+
+	</mx:VBox>
+
+	<mx:Box horizontalAlign="right" width="100%">
+		<mx:HBox>
+			<mx:Button label="{resourceManager.getString('FlexCalendar','editor.delete')}" width="70" click="{deleteCallback()}" visible="{!isNew}"/>
+			<mx:Button label="{resourceManager.getString('FlexCalendar','editor.cancel')}" width="70" click="{cancelCallback()}"/>
+			<mx:Button label="{resourceManager.getString('FlexCalendar','editor.save')}" width="70" click="{saveCallback()}"/>
+		</mx:HBox>
+	</mx:Box>
+</mx:Panel>

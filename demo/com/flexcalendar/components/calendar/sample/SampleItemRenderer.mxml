@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 implements="com.flexcalendar.components.calendar.displayClasses.renderers.ICalendarItemRenderer"
+		 backgroundColor="0xAA00AA">
+
+	<mx:Script><![CDATA[
+		import com.flexcalendar.components.calendar.displayClasses.renderers.CalendarRendererPositionFunction;
+		import com.flexcalendar.components.calendar.utils.ItemDetails;
+
+		[Bindable]
+		private var _itemDetails:ItemDetails;
+
+		public function getPositionFunction(x:Number, y:Number):int
+		{
+			return CalendarRendererPositionFunction.MOVE;
+		}
+
+		public function set itemDetails(value:ItemDetails):void
+		{
+			_itemDetails = value;
+			summaryLabel.text = value.calendarItem.summary;
+		}
+
+		public function get itemDetails():ItemDetails
+		{
+			return _itemDetails;
+		}
+
+		]]></mx:Script>
+
+	<mx:Label id="summaryLabel"/>
+
+</mx:HBox>
