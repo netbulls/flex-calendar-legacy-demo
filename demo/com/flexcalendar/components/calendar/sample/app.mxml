@@ -3,8 +3,7 @@
 				xmlns:flexcalendar="com.flexcalendar.components.calendar.*"
 				xmlns:myflexcalendar="com.flexcalendar.components.calendar.sample.*"
 				backgroundGradientColors="[0xffffff, 0xffffff]"
-				minHeight="900" minWidth="900"
-				height="900" width="1400"
+				minHeight="500" minWidth="700"
 				applicationComplete="completeHandler();">
 
 <!-- To build with maven comment this line -->
@@ -202,6 +201,11 @@
 			flexCalendar.refresh();
 		}
 
+		public function visibleHoursRangeClicked():void
+		{
+
+		}
+
 
         ]]>
 	</mx:Script>
@@ -234,9 +238,9 @@
 					<mx:CheckBox id="limitedEditModeChckbox" label="{resourceManager.getString('sampleApp','config.panel.pro.limited.checkbox')}" click="limitedEditModeClicked()" selected="false"/>
 					<mx:CheckBox id="holidaysChckbox" label="{resourceManager.getString('sampleApp','config.panel.pro.holidays.checkbox')}" click="holidaysClicked()" selected="false"/>
 					<mx:CheckBox id="workingHoursChckbox" label="{resourceManager.getString('sampleApp','config.panel.pro.workinghours.checkbox')}" click="workingHoursClicked()" selected="false"/>
-					<mx:Label text="{resourceManager.getString('sampleApp','config.panel.visiblyHoursRange.label')}"/>
-					<mx:HSlider id="visibleHoursStartSlider" minimum="0" maximum="23" snapInterval="1" value="7" labels="['0','3','6','9','12','15','18','21','24']"/>
-					<mx:HSlider id="visibleHoursEndSlider" minimum="1" maximum="24" snapInterval="1" value="17" labels="['0','3','6','9','12','15','18','21','24']"/>
+					<mx:CheckBox id="visibleHoursRangeChckbox" label="{resourceManager.getString('sampleApp','config.panel.visiblyHoursRange.label')}" click="visibleHoursRangeClicked()" selected="false"/>
+					<mx:HSlider id="visibleHoursStartSlider" visible="{visibleHoursRangeChckbox.selected}" includeInLayout="{visibleHoursRangeChckbox.selected}" minimum="0" maximum="23" snapInterval="1" value="7" labels="['0','3','6','9','12','15','18','21','24']"/>
+					<mx:HSlider id="visibleHoursEndSlider" visible="{visibleHoursRangeChckbox.selected}" includeInLayout="{visibleHoursRangeChckbox.selected}" minimum="1" maximum="24" snapInterval="1" value="17" labels="['0','3','6','9','12','15','18','21','24']"/>
 				</mx:VBox>
 
 				<mx:VBox label="{resourceManager.getString('sampleApp','config.panel.localization.title')}" width="100%" styleName="configPanelVbox">
@@ -264,10 +268,10 @@
                                 calendarRendererMouseDoubleClick="trace('calendarRendererMouseDoubleClick')"
                                 calendarSpaceRendererMouseClick="trace('calendarSpaceRendererMouseClick')"
                                 calendarSpaceRendererMouseDoubleClick="trace('calendarSpaceRendererMouseDoubleClick')"
-								snapToGridThreshold="5"
+								snapToGridThreshold="{selectedMinute}"
 								visibleHoursStart="{visibleHoursStartSlider.value}"
 								visibleHoursEnd="{visibleHoursEndSlider.value}"
-								visibleHoursLimited="{true}"
+								visibleHoursLimited="{visibleHoursRangeChckbox.selected}"
 								granularityMinutes="{selectedMinute}"
 								/>
 
