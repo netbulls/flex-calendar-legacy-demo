@@ -3,7 +3,8 @@
 				xmlns:flexcalendar="com.flexcalendar.components.calendar.*"
 				xmlns:myflexcalendar="com.flexcalendar.components.calendar.sample.*"
 				backgroundGradientColors="[0xffffff, 0xffffff]"
-				minHeight="500" minWidth="700"
+				minHeight="900" minWidth="900"
+				height="900" width="1400"
 				applicationComplete="completeHandler();">
 
 <!-- To build with maven comment this line -->
@@ -28,6 +29,22 @@
 			   borderColor: #ffffff;
 			   backgroundType: "solid";
 	   }
+
+
+		.flexCalendarExcessIndicator
+		{
+			color: #CC0000;
+			fontStyle: italic;
+		}
+
+		MonthViewGrid
+		{
+			currentDayBackgroundColor: #CC0000;
+			currentDayBackgroundAlpha: 0.5;
+			currentDayCellHeaderBackground: #00FF00;
+			currentDayCellHeaderAlpha: 1.0;
+
+		}
 	</mx:Style>
 
 	<mx:Script>
@@ -43,7 +60,7 @@
         import com.flexcalendar.components.calendar.utils.DateUtils;
 
         import mx.events.CalendarLayoutChangeEvent;
-
+		var dataProviderBuilder:DataProviderBuilder;
         [Bindable]
         public var dp:CalendarDataProvider;
 
@@ -60,8 +77,9 @@
             fromDateChooser.addEventListener(CalendarLayoutChangeEvent.CHANGE, updateRange);
             toDateChooser.addEventListener(CalendarLayoutChangeEvent.CHANGE, updateRange);
 
+			dataProviderBuilder = new DataProviderBuilder();
             //create sample CalendarDataProvider
-            dp = new DataProviderBuilder().buildExampleDataProvider();
+            dp = dataProviderBuilder.buildExampleDataProvider();
 
             var today:Date = DateUtils.startOfDay(new Date());
 
@@ -118,12 +136,73 @@
 
         [Bindable]
         private var locales:Array = ["en_US", "pt_BR"];
+		[Bindable]
+		private var minutes:Array = [10,20,30,60];
+		[Bindable]
+		private var selectedMinute:Number = 30;
         [Bindable]
         private var defaultLocale:Object;
+		[Bindable]
+		private var calendarMode:int = CalendarMode.FREE_EDIT_MODE;
 
         private function localeComboChangeHandler():void {
             resourceManager.localeChain = [ localeComboBox.selectedItem, "en_US"];
         }
+
+		private function granularityMinutesChanged():void {
+            selectedMinute = granularityMinutesComboBox.selectedItem as Number;
+        }
+
+		private function calendarReadonlyClicked():void {
+			if (calendarReadonlyChckbox.selected)
+			{
+				calendarMode = CalendarMode.READ_ONLY_MODE;
+			} else
+			{
+				calendarMode = CalendarMode.FREE_EDIT_MODE;
+			}
+		}
+		private function limitedEditModeClicked():void
+		{
+			if (null != calendarReadonlyChckbox)
+				calendarReadonlyChckbox.selected = false;
+			if (limitedEditModeChckbox.selected)
+			{
+				calendarMode = CalendarMode.LIMITED_EDIT_MODE;
+				if (!workingHoursChckbox.selected)
+				{
+					workingHoursChckbox.selected = true;
+					workingHoursClicked();
+				}
+			} else
+			{
+				calendarMode = CalendarMode.FREE_EDIT_MODE;
+			}
+		}
+		private function holidaysClicked():void
+		{
+			if (holidaysChckbox.selected)
+			{
+				dataProviderBuilder.addHolidays(dp.itemSets[0]);
+			} else
+			{
+				dataProviderBuilder.removeHolidays(dp.itemSets[0]);
+			}
+			flexCalendar.refresh();
+		}
+		private function workingHoursClicked():void
+		{
+			if (workingHoursChckbox.selected)
+			{
+				dataProviderBuilder.addWorkingHours(dp.itemSets[0]);
+			} else
+			{
+				dataProviderBuilder.removeWorkingHours(dp.itemSets[0]);
+			}
+			flexCalendar.refresh();
+		}
+
+
         ]]>
 	</mx:Script>
 
@@ -137,14 +216,29 @@
 		<mx:VBox height="100%" width="{leftComponentsWidth}">
 			<mx:DateChooser id="fromDateChooser" selectedDate="{flexCalendar.visibleRange.start}" width="100%"/>
 			<mx:DateChooser id="toDateChooser" selectedDate="{flexCalendar.visibleRange.end}" width="100%"/>
-			<mx:Accordion width="{leftComponentsWidth}" height="300">
+			<mx:Accordion selectedIndex="2" width="{leftComponentsWidth}" height="300">
 				<mx:VBox label="{resourceManager.getString('sampleApp','config.panel.global.settings.title')}" width="100%" styleName="configPanelVbox">
-					<mx:CheckBox id="entireCalendarReadonly" label="{resourceManager.getString('sampleApp','config.panel.global.settings.readonly')}" selected="false"/>
+					<mx:CheckBox id="calendarReadonlyChckbox" label="{resourceManager.getString('sampleApp','config.panel.global.settings.readonly')}" click="calendarReadonlyClicked()" selected="false"/>
 					<mx:CheckBox id="hideCalendarHeader" label="{resourceManager.getString('sampleApp','config.panel.global.settings.header')}" selected="true"/>
 					<mx:CheckBox id="currentTimeIndicator" label="{resourceManager.getString('sampleApp','config.panel.global.settings.current.time.indicator')}" selected="true"/>
 					<mx:CheckBox id="currentDayIndicator" label="{resourceManager.getString('sampleApp','config.panel.global.settings.current.day.indicator')}" selected="true"/>
 
 				</mx:VBox>
+				<mx:VBox  label="{resourceManager.getString('sampleApp','config.panel.styles.title')}" width="100%" styleName="configPanelVbox">
+					
+					<mx:Spacer/>
+					<mx:Label text="{resourceManager.getString('sampleApp','config.panel.granularityMinutes.choose')}"/>
+					<mx:ComboBox id="granularityMinutesComboBox" dataProvider="{minutes}" selectedItem="{30}" change="granularityMinutesChanged()"/>
+				</mx:VBox>
+				<mx:VBox  label="{resourceManager.getString('sampleApp','config.panel.pro.title')}" width="100%" styleName="configPanelVbox">
+					<mx:CheckBox id="limitedEditModeChckbox" label="{resourceManager.getString('sampleApp','config.panel.pro.limited.checkbox')}" click="limitedEditModeClicked()" selected="false"/>
+					<mx:CheckBox id="holidaysChckbox" label="{resourceManager.getString('sampleApp','config.panel.pro.holidays.checkbox')}" click="holidaysClicked()" selected="false"/>
+					<mx:CheckBox id="workingHoursChckbox" label="{resourceManager.getString('sampleApp','config.panel.pro.workinghours.checkbox')}" click="workingHoursClicked()" selected="false"/>
+					<mx:Label text="{resourceManager.getString('sampleApp','config.panel.visiblyHoursRange.label')}"/>
+					<mx:HSlider id="visibleHoursStartSlider" minimum="0" maximum="23" snapInterval="1" value="7" labels="['0','3','6','9','12','15','18','21','24']"/>
+					<mx:HSlider id="visibleHoursEndSlider" minimum="1" maximum="24" snapInterval="1" value="17" labels="['0','3','6','9','12','15','18','21','24']"/>
+				</mx:VBox>
+
 				<mx:VBox label="{resourceManager.getString('sampleApp','config.panel.localization.title')}" width="100%" styleName="configPanelVbox">
 						<mx:Label text="{resourceManager.getString('sampleApp','config.panel.localization.choose')}"/>
 						<mx:ComboBox id="localeComboBox" dataProvider="{locales}" change="localeComboChangeHandler()" selectedItem="{defaultLocale}"/>
@@ -155,7 +249,7 @@
 
 		<flexcalendar:FlexCalendar id="flexCalendar" width="100%" height="100%" dataProvider="{dp}" scaleX="1" visibleRange="{visibleDateRange}"
 								scaleY="1" itemEditor="{new BaloonItemEditor(flexCalendar, false, false)}"
-								calendarMode="{entireCalendarReadonly.selected?CalendarMode.READ_ONLY_MODE : CalendarMode.LIMITED_EDIT_MODE}"
+								calendarMode="{calendarMode}"
 								headerVisible="{hideCalendarHeader.selected}"
 								currentTimeIndicator="{currentTimeIndicator.selected}"
 								currentDayIndicator="{currentDayIndicator.selected}"
@@ -170,6 +264,11 @@
                                 calendarRendererMouseDoubleClick="trace('calendarRendererMouseDoubleClick')"
                                 calendarSpaceRendererMouseClick="trace('calendarSpaceRendererMouseClick')"
                                 calendarSpaceRendererMouseDoubleClick="trace('calendarSpaceRendererMouseDoubleClick')"
+								snapToGridThreshold="5"
+								visibleHoursStart="{visibleHoursStartSlider.value}"
+								visibleHoursEnd="{visibleHoursEndSlider.value}"
+								visibleHoursLimited="{true}"
+								granularityMinutes="{selectedMinute}"
 								/>
 
 	</mx:HBox>

@@ -9,11 +9,65 @@ import com.flexcalendar.components.calendar.displayClasses.decoration.RendererCo
 import com.flexcalendar.components.calendar.displayClasses.decoration.RendererColorsFactory;
 import com.flexcalendar.components.calendar.utils.DateUtils;
 
+import mx.collections.ArrayCollection;
+
 public class DataProviderBuilder
 {
 
 	public function DataProviderBuilder()
 	{
+	}
+
+	public function addHolidays(itemSet:CalendarItemSet):void
+	{
+		itemSet.addItemAsSpace(buildItemWithDay(0, 0, 24, "Holiday", false), ItemType.UNAVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(6, 0, 24, "Holiday", false), ItemType.UNAVAILABLE_SPACE);
+	}
+
+	public function removeHolidays(itemSet:CalendarItemSet):void
+	{
+		var holidays:ArrayCollection = new ArrayCollection();
+		for each (var item:CalendarItem in itemSet.items)
+		{
+			if (item.itemType == ItemType.UNAVAILABLE_SPACE)
+			{
+				holidays.addItem(item);
+			}
+		}
+		for each (var holiday:CalendarItem in holidays)
+		{
+			itemSet.removeItem(holiday);
+		}
+		holidays.removeAll();
+	}
+
+	public function addWorkingHours(itemSet:CalendarItemSet):void
+	{
+		itemSet.addItemAsSpace(buildItemWithDay(1, 8, 16, "Available", false, RendererColorsFactory.buildColors(RendererColors.YELLOW)), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(1, 18, 20, "Available", false), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(2, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(3, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(3, 18, 20, "Available", false), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(4, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(5, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
+		itemSet.addItemAsSpace(buildItemWithDay(5, 18, 20, "Available", false), ItemType.AVAILABLE_SPACE);
+	}
+
+	public function removeWorkingHours(itemSet:CalendarItemSet):void
+	{
+		var workingHours:ArrayCollection = new ArrayCollection();
+		for each (var item:CalendarItem in itemSet.items)
+		{
+			if (item.itemType == ItemType.AVAILABLE_SPACE)
+			{
+				workingHours.addItem(item);
+			}
+		}
+		for each (var workingHour:CalendarItem in workingHours)
+		{
+			itemSet.removeItem(workingHour);
+		}
+		workingHours.removeAll();
 	}
 
 	public function buildExampleDataProvider():CalendarDataProvider
@@ -23,22 +77,12 @@ public class DataProviderBuilder
 //		var item_one:CalendarItem = buildItemWithDay(1, 6.5, 7.5, "Morning excercises");
 //		item_one.recur = new Recur("FREQ=DAILY");
 //		itemSet.addItem(item_one);
-		itemSet.addItemAsSpace(buildItemWithDay(0, 0, 24, "Holiday", false), ItemType.UNAVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(6, 0, 24, "Holiday", false), ItemType.UNAVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(1, 8, 16, "Available", false, RendererColorsFactory.buildColors(RendererColors.YELLOW)), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(1, 18, 20, "Available", false), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(2, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(3, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(3, 18, 20, "Available", false), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(4, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(5, 8, 16, "Available", false), ItemType.AVAILABLE_SPACE);
-		itemSet.addItemAsSpace(buildItemWithDay(5, 18, 20, "Available", false), ItemType.AVAILABLE_SPACE);
 
 
 		itemSet.addItem(buildItemWithDay(1, 8.5, 11, "Important meeting", false, RendererColorsFactory.buildColorsWithGradient(RendererColors.RED)));
 		itemSet.addItem(buildItemWithDay(1, 11.5, 12.5, "Lunch with Mark", false, RendererColorsFactory.buildColorsWithGradient(RendererColors.YELLOW)));
 
-		itemSet.addItem(buildItemWithDay(2, 9.5, 12.5, "Negotiations with ABCD", false, RendererColorsFactory.buildColorsWithGradient(RendererColors.LIGHT_BLUE)));
+		itemSet.addItem(buildItemWithDay(2, 9.5, 12.5, "<b>Negotions</b> with <u>ABCD</u>", false, RendererColorsFactory.buildColorsWithGradient(RendererColors.LIGHT_BLUE)));
 
 		itemSet.addItem(buildItemWithDay(3, 13, 16, "Busy", false, RendererColorsFactory.buildColorsWithGradient(RendererColors.VIOLET)));
 
